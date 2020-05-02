@@ -1,7 +1,7 @@
 import requests
 from lxml import html
 
-from basketball_reference_web_scraper.data import TEAM_TO_TEAM_ABBREVIATION, TeamTotal, PlayerData
+from basketball_reference_web_scraper.data import TEAM_TO_TEAM_ABBREVIATION, TEAM_NAME_TO_TEAM, POSITION_NAMES_TO_POSITION, TeamTotal, PlayerData
 from basketball_reference_web_scraper.errors import InvalidDate, InvalidPlayerAndSeason
 from basketball_reference_web_scraper.html import DailyLeadersPage, PlayerSeasonBoxScoresPage, PlayerSeasonTotalTable, \
     PlayerAdvancedSeasonTotalsTable, PlayByPlayPage, SchedulePage, BoxScoresPage, DailyBoxScoresPage, SearchPage, \
@@ -173,23 +173,24 @@ class HTTPService:
         PlayerData = {
             'player_identifier': player_identifier,
             'name': page.name,
-            'height': page.height,
             'height_inches': page.height_inches,
             'weight_lbs': page.weight_lbs,
             'shooting_hand': page.shooting_hand,
             'positions': page.positions,
-            'birthdate': page.birthdate,
-            'birthyear': page.birthyear,
-            'birth_state': page.birth_state,
-            'birth_city': page.birth_city,
-            'awards': page.awards,
+            'born': {'date': page.birthdate, 'city':page.birth_city , 'state': page.birth_state},
             'college': page.college,
             'draft': page.draft,
             "imgURL":None,
-            'transactions': page.transactions,
             'totals': page.totals_table
         }
 
+        if PlayerData['draft'] is not None:
+            PlayerData['draft']['team'] = TEAM_NAME_TO_TEAM[PlayerData['draft']['team'].upper()]
+
+        OriginalPositions = PlayerData['positions']
+        PlayerData['positions'] = []
+        for P in OriginalPositions:
+            PlayerData['positions'].append(POSITION_NAMES_TO_POSITION[P.upper()])
 
         return PlayerData
 

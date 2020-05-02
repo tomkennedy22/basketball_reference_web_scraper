@@ -1,5 +1,5 @@
 import re
-
+import datetime
 
 class BasicBoxScoreRow:
     def __init__(self, html):
@@ -1168,19 +1168,10 @@ class PlayerPage:
         birthdate_fields = self.html.xpath('.//@data-birth')
 
         if len(birthdate_fields) > 0:
-            return birthdate_fields[0].strip()
+            (year, month, day) = birthdate_fields[0].strip().split('-')
+            return datetime.date(int(year), int(month), int(day))
 
         return None
-
-
-    @property
-    def birthyear(self):
-        birthdate = self.birthdate
-
-        if birthdate is not None:
-            birthdate = birthdate.split('-')
-
-        return int(birthdate[0])
 
     @property
     def birth_state(self):
