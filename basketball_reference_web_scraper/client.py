@@ -179,6 +179,23 @@ def play_by_play(home_team, day, month, year, output_type=None, output_file_path
         json_options=json_options,
     )
 
+def player_information(player_identifier, output_type=None, output_file_path=None, output_write_option=None,
+                    json_options=None):
+
+    http_service = HTTPService(parser=ParserService())
+    values = http_service.player_information(player_identifier = player_identifier)
+
+    return output(
+        values=values,
+        output_type=output_type,
+        output_file_path=output_file_path,
+        output_write_option=output_write_option,
+        csv_writer=CSVWriter(
+            column_names=PLAY_BY_PLAY_COLUMN_NAMES,
+            row_formatter=RowFormatter(data_field_names=PLAY_BY_PLAY_COLUMN_NAMES)
+        ),
+        json_options=json_options,
+    )
 
 def search(term, output_type=None, output_file_path=None, output_write_option=None, json_options=None):
     http_service = HTTPService(parser=ParserService())

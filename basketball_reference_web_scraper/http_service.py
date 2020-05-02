@@ -159,6 +159,41 @@ class HTTPService:
             for box_score in self.team_box_score(game_url_path=game_url_path)
         ]
 
+
+    def player_information(self, player_identifier):
+        player_first_letter = player_identifier[0]
+        url = "{BASE_URL}/players/{PLAYER_FIRST_LETTER}/{PLAYER_SLUG}.html".format(BASE_URL=HTTPService.BASE_URL, PLAYER_FIRST_LETTER=player_first_letter, PLAYER_SLUG=player_identifier)
+
+        response = requests.get(url=url)
+
+        response.raise_for_status()
+
+        page = PlayerPage(html=html.fromstring(response.content))
+
+        PlayerData = {
+            'player_identifier': player_identifier,
+            'name': page.name,
+            'height': page.height,
+            'height_inches': page.height_inches,
+            'weight_lbs': page.weight_lbs,
+            'shooting_hand': page.shooting_hand,
+            'positions': page.positions,
+            'birthdate': page.birthdate,
+            'birthyear': page.birthyear,
+            'birth_state': page.birth_state,
+            'birth_city': page.birth_city,
+            'awards': page.awards,
+            'college': page.college,
+            'draft': page.draft,
+            "imgURL":None,
+            'transactions': page.transactions,
+            'totals': page.totals_table
+        }
+
+
+        return PlayerData
+
+
     def search(self, term):
         response = requests.get(
             url="{BASE_URL}/search/search.fcgi".format(BASE_URL=HTTPService.BASE_URL),

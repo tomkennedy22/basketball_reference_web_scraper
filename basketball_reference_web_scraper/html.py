@@ -249,8 +249,8 @@ class PlayerAdvancedSeasonTotalsTable:
             //table[@id="advanced_stats"]
             /tbody
             /tr[
-                contains(@class, "full_table") or 
-                contains(@class, "italic_text partial_table") 
+                contains(@class, "full_table") or
+                contains(@class, "italic_text partial_table")
                 and not(contains(@class, "rowSum"))
             ]
         """
@@ -281,8 +281,8 @@ class PlayerSeasonTotalTable:
             //table[@id="totals_stats"]
             /tbody
             /tr[
-                contains(@class, "full_table") or 
-                contains(@class, "italic_text partial_table") 
+                contains(@class, "full_table") or
+                contains(@class, "italic_text partial_table")
                 and not(contains(@class, "rowSum"))
             ]
         """
@@ -1026,17 +1026,17 @@ class PlayerSearchResult(SearchResult):
     @property
     def league_abbreviations(self):
         abbreviations = self.html.xpath(self.league_abbreviation_query)
-        
+
         if len(abbreviations) > 0:
             return abbreviations[0].text_content()
 
         return None
-    
+
 
 class PlayerPageTotalsRow:
     def __init__(self, html):
         self.html = html
-    
+
     @property
     def league_abbreviation(self):
         league_abbreviation_cells = self.html.xpath('.//td[@data-stat="lg_id"]')
@@ -1072,7 +1072,7 @@ class PlayerPageTotalsTable:
 class PlayerPage:
     def __init__(self, html):
         self.html = html
-    
+
     @property
     def name(self):
         name_headers = self.html.xpath('.//h1[@itemprop="name"]')
@@ -1081,6 +1081,151 @@ class PlayerPage:
             return name_headers[0].text_content()
 
         return None
+
+    @property
+    def height(self):
+        height_fields = self.html.xpath('.//span[@itemprop="height"]')
+
+        if len(height_fields) > 0:
+            return height_fields[0].text_content()
+
+        return None
+
+    @property
+    def height_inches(self):
+        height = self.height
+        [feet, inches] = height.split('-')
+
+
+
+        return int(feet) * 12 + int(inches)
+
+    @property
+    def weight_lbs(self):
+        weight_fields = self.html.xpath('.//span[@itemprop="weight"]')
+
+        if len(weight_fields) > 0:
+            return int(weight_fields[0].text_content().replace('lb', ''))
+
+        return None
+
+    @property
+    def positions(self):
+        positions_fields = self.html.xpath('.//strong[contains(.,"Position:")]/following-sibling::text()')
+
+        if len(positions_fields) > 0:
+            return [pos.replace('▪', '').strip() for pos in positions_fields[0].split('and')]
+
+        return None
+
+    @property
+    def shooting_hand(self):
+        shoots_fields = self.html.xpath('.//strong[contains(.,"Shoots:")]/following-sibling::text()')
+
+        if len(shoots_fields) > 0:
+            return shoots_fields[0].strip()
+
+        return None
+
+
+    @property
+    def college(self):
+        college_fields = self.html.xpath('.//strong[contains(.,"College:")]/following-sibling::a')
+
+        if len(college_fields) > 0:
+            return college_fields[0].text_content()
+
+        return None
+
+
+    @property
+    def draft(self):
+        # Draft: Houston Rockets, 2nd round (2nd pick, 32nd overall), 2015 NBA Draft
+        draft_fields = self.html.xpath('.//strong[contains(.,"Draft:")]/following-sibling::a')
+        if len(draft_fields) > 0:
+            #Houston Rockets
+            Team = draft_fields[0].text_content()
+            # 2015 NBA Draft
+            Year = draft_fields[1].text_content()
+            Year = int(Year.replace(' NBA Draft', ''))
+        else:
+            return None
+
+        draft_fields = self.html.xpath('.//strong[contains(.,"Draft:")]/following-sibling::a/following-sibling::text()')
+        if len(draft_fields) > 0:
+            # , 2nd round (2nd pick, 32nd overall),
+            Pick = draft_fields[0].strip()
+
+            Pick = Pick.replace(' round (', '|').replace(' pick,', '|').replace('overall', '|').replace('(', '|').replace(')', '').replace(',', '')
+            Pick = [int(u.strip().replace('th', '').replace('st', '').replace('nd', '').replace('rd', '')) for u in Pick.split('|') if len(u) > 0]
+
+
+
+        return {'team': Team, 'year': Year,'round': Pick[0], 'pick': Pick[1], 'overall': Pick[2]}
+
+    @property
+    def birthdate(self):
+        birthdate_fields = self.html.xpath('.//@data-birth')
+
+        if len(birthdate_fields) > 0:
+            return birthdate_fields[0].strip()
+
+        return None
+
+
+    @property
+    def birthyear(self):
+        birthdate = self.birthdate
+
+        if birthdate is not None:
+            birthdate = birthdate.split('-')
+
+        return int(birthdate[0])
+
+    @property
+    def birth_state(self):
+        birth_state_fields = self.html.xpath('.//span[@itemprop="birthPlace"]/a')
+
+        if len(birth_state_fields) > 0:
+            return birth_state_fields[0].text_content()
+
+        return None
+
+    @property
+    def birth_city(self):
+        birth_city_fields = self.html.xpath('.//span[@itemprop="birthPlace"]/a/preceding-sibling::text()')
+
+        if len(birth_city_fields) > 0:
+            return birth_city_fields[0].replace('in\xa0', '').replace(',', '').strip()
+
+        return None
+
+
+    @property
+    def awards(self):
+        awards_fields = self.html.xpath('.//div[@id="leaderboard_notable-awards"]')
+
+        print('awards_fields', awards_fields)
+
+        awards_fields = self.html.xpath('//div[@id="leaderboard_notable-awards"]')
+
+        print('awards_fields', awards_fields)
+        awards_fields = self.html.xpath('./div[@id="leaderboard_notable-awards"]')
+
+        print('awards_fields', awards_fields)
+        awards_fields = self.html.xpath('div[@id="leaderboard_notable-awards"]')
+
+        print('awards_fields', awards_fields)
+        awards_fields = self.html.xpath('/div[@id="leaderboard_notable-awards"]')
+
+        print('awards_fields', awards_fields)
+        return [award.text_content() for award in awards_fields]
+
+    @property
+    def transactions(self):
+        transactions_fields = self.html.xpath('/p[@class="transaction"]')
+
+        return [trans.text_content() for trans in transactions_fields]
 
     @property
     def totals_table(self):
